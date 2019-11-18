@@ -22,15 +22,15 @@ bool Socket::create() {
     return false;
   }
   /*
-  int reuse = 1;
-  struct timeval timeout;
-  timeout.tv_sec = 3;
-  timeout.tv_usec = 0;
-  if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
-    cout <<"Fail to setSockOption\n";
-    return false;
-  }
-  */
+     int reuse = 1;
+     struct timeval timeout;
+     timeout.tv_sec = 3;
+     timeout.tv_usec = 0;
+     if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
+     cout <<"Fail to setSockOption\n";
+     return false;
+     }
+   */
   return true;
 }
 
@@ -45,7 +45,7 @@ bool Socket::bind (const int port) {
     cout << "Fail to bind\n";
     return false;
   }
-      
+
   return true;
 }
 
@@ -75,6 +75,63 @@ bool Socket::send(const string content) {
   if (::send(sock,content.c_str(), content.size(), 0) == -1) return false;
   else return true;
 }
+bool Socket::send_file(char name[50]) {
+  int fr= open(name, O_RDONLY);
+  if (fr < 0) {
+    puts("ERROR when sending file.\n");
+    return false;
+  }
+  char buf[PACKET_SIZE+2];
+  memset(buf, 0, sizeof(buf));
+  int len;
+  while ((len = read(fr,buf,PACKET_SIZE)) > 0) {
+    ::send(sock, buf, len,0);
+  }
+  close(fr);
+  return true;
+}
+
+bool Socket::send_requested_file(char buffer[PACKET_SIZE]) {
+  //파일명얻기
+  char parsed_name[50];
+  memset(parsed_name, 0, 50);
+  int idx=0;
+  for(int i=5; i<56; i++) {
+    if (buffer[i] == ' ') break;
+    parsed_name[idx++] = buffer[i];
+  }
+  parsed_name[idx] = '\0';
+
+  //파일 타입얻기
+  int flag=0, j=0;
+  char type[7];
+  memset(type, 0, 7);
+  for (int i=0; i<strlen(parsed_name); i++) {
+    if (flag == 1) type[j++]=parsed_name[i]; 
+    if (parsed_name[i]== '.') flag=1;
+  }
+  type[j] = '\0';
+  
+  //일단 이상한거 들어오면 return
+  if (strcmp(type,"min.js.map") == 0 || strcmp(type, "ico")==0) return false;
+  
+  //파일 보내기
+  int fr= open(parsed_name, O_RDONLY);
+  if (fr < 0) {
+    puts("ERROR when sending file.\n");
+    return false;
+  }
+  char buf[PACKET_SIZE+2];
+  memset(buf, 0, sizeof(buf));
+  int len;
+  while ((len = read(fr,buf,PACKET_SIZE)) > 0) {
+    ::send(sock, buf, len,0);
+  }
+  close(fr);
+  return true;
+}
+
+
 
 int Socket::recv(string& buffer) {
 
@@ -118,5 +175,13 @@ int ServerSocket::recv(string& s) {
 
 void ServerSocket::send(string s) {
   if (!Socket::send(s)) throw SocketException("Failed to send\n");
+}
+
+bool ServerSocket::send_requested_file(char msg[PACKET_SIZE]) {
+  Socket::send_requested_file(msg);
+}
+
+bool ServerSocket::send_file(char name[50]) {
+  Socket::send_file(name);
 }
 

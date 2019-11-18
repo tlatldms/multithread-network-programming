@@ -42,6 +42,9 @@ class Socket {
     
     //Data Transmission
     bool send(const string);
+
+    bool send_requested_file(char buffer[PACKET_SIZE]);
+    bool send_file(char file_name[50]);
     int recv(string&);
     
     int get_sock() {
@@ -66,6 +69,8 @@ class ServerSocket : private Socket {
     }
     int recv(string& s);
     void send(string s);
+    bool send_requested_file(char buffer[PACKET_SIZE]);
+    bool send_file(char file_name[50]);
     void accept(ServerSocket&);
 };
 
