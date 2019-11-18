@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <string>
+#include <cerrno>
 
 using namespace std;
 

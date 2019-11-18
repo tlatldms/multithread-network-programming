@@ -1,5 +1,6 @@
 #include "socket.h"
 #include <iostream>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -20,12 +21,16 @@ bool Socket::create() {
     cout << "Fail to create socket: Socket already created\n";
     return false;
   }
-
+  /*
   int reuse = 1;
-  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1) {
+  struct timeval timeout;
+  timeout.tv_sec = 3;
+  timeout.tv_usec = 0;
+  if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1) {
     cout <<"Fail to setSockOption\n";
     return false;
   }
+  */
   return true;
 }
 
@@ -61,6 +66,7 @@ bool Socket::accept(Socket& new_socket) { // new_socket: to be used as path of b
     cout << "Fail to accept client connection\n";
     return false;
   }
+  cout << "accept..." << endl;
   return true;
 }
 
@@ -71,12 +77,14 @@ bool Socket::send(const string content) {
 }
 
 int Socket::recv(string& buffer) {
+
+
   char rcv_buf[PACKET_SIZE+2];
-  buffer="";
   memset(rcv_buf, 0, PACKET_SIZE+2);
+  cout << "sock: " << sock << endl;
   int rcv_len;
-  if ( (rcv_len = ::recv(sock, rcv_buf, PACKET_SIZE, 0)) == -1) {
-    cout << "Fail to receive msg. errno:" << errno << "\n";
+  if ( (rcv_len = ::recv(sock, rcv_buf, PACKET_SIZE+2, 0)) == -1) {
+    cout << "Fail to receive msg. errno:" << strerror(errno) << "\n";
     return -1;
   } else {
     buffer = rcv_buf;
