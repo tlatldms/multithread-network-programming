@@ -7,39 +7,14 @@
 
 using namespace std;
 
-//mutex mtx;
+mutex mtx;
 
 char all_packet[256]="HTTP/1.1 200 OK\r\nContent-Type: */*\r\nConnection: keep-alive\r\nKeep-Alive: timeout=30, max=200\r\nConnection: keep-alive\r\nKeep-Alive: timeout=300, max=200\r\n\r\n";
 //string html_packet = "HTTP/1.1 200 OK\r\nContent-Type:text/html\r\nConnection: keep-alive\r\nKeep-Alive: timeout=30, max=200\r\n\r\n";
-
-char* get_type(char *name) {
-  int i, flag=0, j=0;
-  char* type= (char*)malloc(sizeof(char)*7);
-  memset(type, 0, 7);
-  for (i=0;i<strlen(name); i++) {
-    if (flag == 1) type[j++]=name[i]; 
-    if (name[i]== '.') flag=1;
-  }
-  type[j] = '\0';
-  return type;
-}
-
-char* get_filename(char* msg) {
-  char * parsed_name = (char *)malloc(sizeof(char)*50);
-  memset(parsed_name, 0, 50);
-  int idx=0;
-  for(int i=5; i<56; i++) {
-    if (msg[i] == ' ') break;
-    parsed_name[idx++] = msg[i];
-  }
-  parsed_name[idx] = '\0';
-  return parsed_name;
-}
-
 void fun(ServerSocket * _sock) {
   int sock = (*_sock).get_sock();
   thread::id this_id = std::this_thread::get_id();
-  cout << "쓰레드 번호: " << this_id << endl;
+  cout << "thread num: " << this_id << endl;
 
   char rcv_buf[PACKET_SIZE+2];
   memset(rcv_buf, 0, sizeof(rcv_buf));
@@ -51,9 +26,8 @@ void fun(ServerSocket * _sock) {
     cout << rcv_buf << endl;
     
     if (::send(sock, all_packet, strlen(all_packet), 0) == -1) {
-       cout << "failed to send!" << endl;
+       cout << "failed to send header packet!" << endl;
     }
-    cout << "헤더  패킷 보냈음! " << endl;
 
     if (rcv_buf[5] == ' ') { //첫 페이지
       char ind[12]="index.html\0";
@@ -80,8 +54,9 @@ int main(int argc, char *argv[]) {
   while (true) {
     ServerSocket new_sock; // path to recv/send
     server_sock.accept(new_sock);
-
+    cout << new_sock.get_addr().sin_port  << endl;
     thread t(fun, &new_sock);
+    //t.detach();
     t.join();
   }
   } catch (SocketException& e) {

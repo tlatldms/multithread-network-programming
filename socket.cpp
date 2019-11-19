@@ -59,8 +59,8 @@ bool Socket::listen() {
 }
 
 bool Socket::accept(Socket& new_socket) { // new_socket: to be used as path of both send&recv 
-  int addr_len = sizeof(sock_addr);
-  new_socket.sock = ::accept(sock, (struct sockaddr *)&sock_addr, (socklen_t *)&addr_len);
+  int addr_len = sizeof(new_socket.sock_addr);
+  new_socket.sock = ::accept(sock, (struct sockaddr *)&(new_socket.sock_addr), (socklen_t *)&addr_len);
 
   if (new_socket.sock == -1) {
     cout << "Fail to accept client connection\n";

@@ -50,11 +50,14 @@ class Socket {
     int get_sock() {
       return sock;
     }
+    sockaddr_in get_addr() {
+      return sock_addr;
+    }
     bool is_valid() {
       return sock != -1;
     }
 
-  private:
+  
     int sock;
     sockaddr_in sock_addr;
 };
@@ -67,6 +70,11 @@ class ServerSocket : private Socket {
     int get_sock() {
       return Socket::get_sock();
     }
+
+    sockaddr_in get_addr() {
+      return Socket::get_addr();
+    }
+
     int recv(string& s);
     void send(string s);
     bool send_requested_file(char buffer[PACKET_SIZE]);
